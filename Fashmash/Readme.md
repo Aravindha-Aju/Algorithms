@@ -1,560 +1,499 @@
-\# Facemash Ranking Algorithm
+# Facemash — Ranking Algorithm
 
+A Python reconstruction of the **pairwise ranking concept behind Facemash**, the 2003 Harvard website associated with Mark Zuckerberg and later portrayed in the 2010 film ***The Social Network***.
 
+The project explores how a simple comparison between two people can be converted into a dynamic numerical ranking through repeated user selections.
 
-A Python implementation of a pairwise ranking system inspired by \*\*Facemash\*\*, the website associated with Mark Zuckerberg's early Harvard project and portrayed in the 2010 film \*\*\*The Social Network\*\*\*.
+> **Note:** This is a modern educational reconstruction. It is not the original Facemash source code or a claim about its exact historical ranking implementation.
 
+---
 
+## Background
 
-The project explores the algorithmic idea behind comparing two entities at a time, collecting the comparison results, and using those results to construct a relative ranking.
+Facemash was created by Mark Zuckerberg while studying at Harvard University in 2003. The website presented users with two photographs and allowed them to choose between them.
 
+The accumulated choices were used to create a relative ranking.
 
+Facemash was later dramatized in ***The Social Network (2010)***, where its creation and rapid popularity form an important part of the opening story.
 
-> \*\*Note:\*\* This repository is a modern technical reconstruction. It is not the original Facemash source code.
-
-
-
-\---
-
-
-
-\## Background
-
-
-
-\*\*Facemash\*\* was created by Mark Zuckerberg while he was a student at Harvard University in 2003.
-
-
-
-The basic concept was to present users with photographs of two Harvard students and allow them to choose between them. The system then used the accumulated choices to produce rankings.
-
-
-
-The project became part of the early history surrounding what would eventually become Facebook.
-
-
-
-Facemash was also prominently portrayed in the 2010 film \*\*\*The Social Network\*\*\*, which dramatizes the creation of the site and its role in the story of Facebook's origins.
-
-
-
-The movie presents the project as a rapidly developed website that used student photographs and a ranking mechanism to determine comparative results.
-
-
-
-\---
-
-
-
-\## The Algorithmic Concept
-
-
-
-The central idea can be represented as:
-
-
+From an algorithmic perspective, the interesting idea is:
 
 ```text
-
-Two Entities
-
-&#x20;    │
-
-&#x20;    ▼
-
-User Comparison
-
-&#x20;    │
-
-&#x20;    ▼
-
-Winner / Loser
-
-&#x20;    │
-
-&#x20;    ▼
-
+Two People
+    |
+    v
+User Choice
+    |
+    v
 Rating Update
-
-&#x20;    │
-
-&#x20;    ▼
-
-Updated Rankings
-
+    |
+    v
+Updated Ranking
+    |
+    v
+Repeat
 ```
 
+---
 
+## Core Concept
 
-Rather than assigning an absolute score directly, the system builds a \*\*relative ranking through repeated pairwise comparisons\*\*.
+The system uses **pairwise comparison**.
 
-
-
-\---
-
-
-
-\## Modern Reconstruction
-
-
-
-This implementation uses an \*\*Elo-style rating system\*\* to model the ranking mechanism.
-
-
-
-Each entity begins with:
-
-
+Instead of asking a user to assign an absolute score, the system presents two entities:
 
 ```text
+Person A
 
-Initial Rating = 1500
+   VS
 
+Person B
 ```
 
+The user selects one.
 
+That result is then used to update the ratings of both participants.
+
+After many comparisons, the ratings are sorted to produce a ranking.
+
+```text
+Comparison
+     |
+     v
+Winner / Loser
+     |
+     v
+Rating Calculation
+     |
+     v
+Rating Update
+     |
+     v
+Ranking
+```
+
+---
+
+## Ranking Model
+
+This implementation uses an **Elo-style rating system** as a modern reconstruction of the pairwise ranking concept.
+
+Every entity begins with:
+
+```text
+Initial Rating = 1500
+```
 
 For two entities `A` and `B`, the expected score of `A` is:
 
-
-
 ```text
-
 EA = 1 / (1 + 10^((RB - RA) / 400))
-
 ```
-
-
 
 The expected score of `B` is:
 
-
-
 ```text
-
 EB = 1 - EA
-
 ```
 
-
-
-After a comparison, the ratings are updated:
-
-
+After a comparison, the ratings are updated using:
 
 ```text
-
 RA' = RA + K(SA - EA)
 
-
-
 RB' = RB + K(SB - EB)
-
 ```
-
-
 
 Where:
 
-
-
 ```text
-
-RA = Rating of A
-
-RB = Rating of B
-
-SA = Actual score of A
-
-SB = Actual score of B
-
-EA = Expected score of A
-
-EB = Expected score of B
-
-K  = Rating adjustment factor
-
+RA, RB = Current ratings
+SA, SB = Actual results
+EA, EB = Expected results
+K      = Rating adjustment factor
 ```
 
-
-
-\---
-
-
-
-\## System Workflow
-
-
+The implementation uses:
 
 ```text
-
-&#x20;                   FACEMASH
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;              Select Two People
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;                Display Pair
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;               User Selection
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;             Calculate Probability
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;                Update Ratings
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;               Store New Ratings
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;               Select Next Pair
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;                    Repeat
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;                Sort Ratings
-
-&#x20;                      │
-
-&#x20;                      ▼
-
-&#x20;                 Final Ranking
-
+K = 32
 ```
 
+A result that is less expected produces a larger rating change, while an expected result produces a smaller change.
 
+---
 
-\---
-
-
-
-\## Project Structure
-
-
+## Algorithm
 
 ```text
+INITIALIZE
 
-facemash-ranking/
+Assign every entity a rating of 1500.
 
+REPEAT
+
+    Select two different entities.
+
+    Display both entities.
+
+    Receive the user's selection.
+
+    Calculate expected scores.
+
+    Determine actual scores.
+
+    Calculate rating changes.
+
+    Update both ratings.
+
+    Store the updated ratings.
+
+UNTIL
+
+    Ranking process is stopped.
+
+OUTPUT
+
+    Sort all entities by rating in descending order.
+```
+
+---
+
+## System Workflow
+
+```text
+                    FACEMASH
+                       |
+                       v
+              Initialize Ratings
+                       |
+                       v
+              Select Two People
+                       |
+                       v
+                  Display Pair
+                       |
+                       v
+                 User Selection
+                       |
+                       v
+              Calculate Expected
+                    Scores
+                       |
+                       v
+                 Update Ratings
+                       |
+                       v
+                Store Results
+                       |
+                       v
+               Select Next Pair
+                       |
+                       v
+                     Repeat
+                       |
+                       v
+                Sort By Rating
+                       |
+                       v
+                 Final Ranking
+```
+
+---
+
+## Python Implementation
+
+The ranking engine is implemented in Python using an object-oriented design.
+
+```python
+import random
+
+INITIAL_RATING = 1500
+K_FACTOR = 32
+
+
+class RankingSystem:
+
+    def __init__(self, entities):
+        self.ratings = {
+            entity: INITIAL_RATING
+            for entity in entities
+        }
+
+    @staticmethod
+    def expected_score(rating_a, rating_b):
+        return 1 / (1 + 10 ** ((rating_b - rating_a) / 400))
+
+    def update(self, winner, loser):
+        rating_winner = self.ratings[winner]
+        rating_loser = self.ratings[loser]
+
+        expected_winner = self.expected_score(
+            rating_winner,
+            rating_loser
+        )
+
+        expected_loser = 1 - expected_winner
+
+        self.ratings[winner] = (
+            rating_winner
+            + K_FACTOR * (1 - expected_winner)
+        )
+
+        self.ratings[loser] = (
+            rating_loser
+            + K_FACTOR * (0 - expected_loser)
+        )
+
+    def select_pair(self):
+        return random.sample(
+            list(self.ratings.keys()),
+            2
+        )
+
+    def get_ranking(self):
+        return sorted(
+            self.ratings.items(),
+            key=lambda item: item[1],
+            reverse=True
+        )
+```
+
+---
+
+## Implementation Structure
+
+The project currently contains:
+
+```text
+Facemash/
 │
-
 ├── ranking.py
-
 └── README.md
-
 ```
 
+The `RankingSystem` is responsible for:
 
+- Initializing ratings
+- Selecting comparison pairs
+- Calculating expected scores
+- Updating ratings
+- Generating rankings
 
-\## Requirements
+The ranking engine is intentionally independent from the web interface.
 
+---
 
+## Architecture
 
-\* Python 3.8+
-
-\* Python Standard Library
-
-\* No external dependencies
-
-
-
-\## Core Components
-
-
-
-\### `RankingSystem`
-
-
-
-Maintains entity ratings and manages the ranking process.
-
-
-
-\### `expected\_score()`
-
-
-
-Calculates the expected result of a comparison based on current ratings.
-
-
-
-\### `update()`
-
-
-
-Adjusts the ratings of both participants after a comparison.
-
-
-
-\### `select\_pair()`
-
-
-
-Selects two distinct entities for comparison.
-
-
-
-\### `get\_ranking()`
-
-
-
-Returns all entities ordered by their current rating.
-
-
-
-\---
-
-
-
-\## Web Application Architecture
-
-
-
-The ranking engine can be integrated into a complete web application:
-
-
+A complete web implementation can be structured as:
 
 ```text
-
-&#x20;               WEB APPLICATION
-
-&#x20;                      │
-
-&#x20;       ┌──────────────┴──────────────┐
-
-&#x20;       │                             │
-
-&#x20;   Frontend                       Backend
-
-&#x20;       │                             │
-
-&#x20;HTML / CSS / JS                 Python API
-
-&#x20;                                     │
-
-&#x20;                                     ▼
-
-&#x20;                             Ranking Engine
-
-&#x20;                                     │
-
-&#x20;                                     ▼
-
-&#x20;                                 Database
-
+                     WEB BROWSER
+                          |
+                          v
+                 HTML / CSS / JS
+                          |
+                          v
+                     PYTHON API
+                          |
+                          v
+                   RANKING ENGINE
+                          |
+                          v
+                      DATABASE
 ```
 
+### Frontend
 
+Responsible for:
 
-The frontend handles:
+- Displaying the two photographs
+- Receiving the user's selection
+- Requesting the next comparison
+- Displaying rankings
 
+### Backend
 
+Responsible for:
 
-\* User interface
+- Selecting pairs
+- Processing comparisons
+- Calculating rating changes
+- Updating rankings
+- Communicating with the database
 
-\* Photograph presentation
+### Database
 
-\* User selection
+Responsible for storing:
 
-\* Navigation
+- Entities
+- Images
+- Ratings
+- Comparison history
 
+---
 
+## Possible API
 
-The backend handles:
-
-
-
-\* Pair selection
-
-\* Comparison processing
-
-\* Rating calculations
-
-\* Ranking generation
-
-\* Data persistence
-
-
-
-\---
-
-
-
-\## Possible API Structure
-
-
+A web version could expose endpoints such as:
 
 ```text
-
 GET  /entities
-
 GET  /pair
-
 POST /comparison
-
 GET  /ranking
-
 ```
 
-
-
-A frontend can submit a comparison to the backend, after which the backend updates the ratings and returns the next pair.
-
-
-
-\---
-
-
-
-\## Historical Context
-
-
-
-Facemash is significant because it demonstrates an early example of turning a simple social interaction into a computational ranking system.
-
-
-
-The concept can be reduced to:
-
-
+The comparison flow would be:
 
 ```text
-
-Human Choice
-
-&#x20;    ↓
-
-Data
-
-&#x20;    ↓
-
-Algorithm
-
-&#x20;    ↓
-
-Ranking
-
+Browser
+   |
+   | GET /pair
+   v
+Backend
+   |
+   v
+Return Two Entities
+   |
+   v
+User Makes Selection
+   |
+   | POST /comparison
+   v
+Backend
+   |
+   v
+Update Ratings
+   |
+   v
+Database
+   |
+   v
+Next Comparison
 ```
 
+---
 
+## Technology Stack
 
-This same general pattern appears in many modern systems, including recommendation systems, competitive rankings, search relevance, and preference-learning systems.
+```text
+Language       Python
 
+Ranking        Elo-style Pairwise Rating
 
+Frontend       HTML
+               CSS
+               JavaScript
 
-However, the implementation in this repository should \*\*not be interpreted as the verified original Facemash algorithm\*\*. The original source code is not publicly available, and the Elo-style mechanism used here is a modern reconstruction for educational purposes.
+Backend        Python API
 
+Database       PostgreSQL / MySQL
+```
 
+The current implementation focuses on the Python ranking engine.
 
-\---
+---
 
+## Complexity
 
+For `n` entities:
 
-\## Relation to The Social Network
+```text
+Pair Selection       O(1)
+Rating Update        O(1)
+Ranking Generation   O(n log n)
+```
 
+The rating update only affects the two entities involved in the current comparison.
 
+The complete ranking requires sorting the current ratings.
 
-The 2010 film \*\*\*The Social Network\*\*\* dramatizes the development of Facemash and presents it as an important early event in Mark Zuckerberg's story.
+---
 
+## Historical Accuracy
 
+The original Facemash source code and its exact internal ranking algorithm are not reproduced in this project.
 
-The film focuses on the rapid development of the website, the use of Harvard student photographs, the site's sudden popularity, and the consequences that followed.
+The **Elo-style model is a modern reconstruction** used to demonstrate how a pairwise comparison system can maintain dynamic ratings.
 
+Therefore, the relationship is:
 
+```text
+Historical Facemash
+        |
+        v
+Pairwise Comparison Concept
+        |
+        v
+Modern Elo-style Model
+        |
+        v
+Python Implementation
+```
 
-The implementation in this repository takes the \*\*algorithmic concept portrayed in the film\*\* and reconstructs it as a standalone Python ranking engine.
+The implementation should not be interpreted as verified original Facemash source code.
 
+---
 
+## Why This Project?
 
-\---
+Facemash is an interesting example of how a very simple interaction can become an algorithmic system:
 
+```text
+Human Preference
+       |
+       v
+Collected Data
+       |
+       v
+Mathematical Model
+       |
+       v
+Rating
+       |
+       v
+Ranking
+```
 
+The same fundamental idea of converting comparisons and preferences into numerical rankings appears in many modern computational systems.
 
-\## Future Development
+---
 
-
+## Future Development
 
 Possible extensions include:
 
+- Web interface
+- Persistent database
+- REST API
+- Image management
+- Rating history
+- Comparison analytics
+- Improved pair selection
+- Ranking visualization
+- User authentication
 
+---
 
-\* Web interface
+## Disclaimer
 
-\* User authentication
-
-\* Image storage
-
-\* Persistent database
-
-\* REST API
-
-\* Pair-selection optimization
-
-\* Rating history
-
-\* Ranking analytics
-
-\* Match statistics
-
-\* Administrative dashboard
-
-
-
-\---
-
-
-
-\## Disclaimer
-
-
-
-This project is an \*\*educational reconstruction inspired by Facemash and its depiction in \*The Social Network\*\*\*.
-
-
+This project is an **independent educational reconstruction inspired by Facemash and its depiction in *The Social Network*.**
 
 It does not contain the original Facemash source code and does not claim to reproduce its exact historical implementation.
 
+The purpose of this project is to study:
 
+- Pairwise ranking
+- Rating algorithms
+- Probability
+- Python
+- Backend architecture
+- Algorithmic systems
 
-The system is intended for experimentation with pairwise ranking algorithms and web application architecture.
+---
 
-
-
-\## License
-
-
+## License
 
 This project is intended for educational and experimental purposes.
-
-
-
